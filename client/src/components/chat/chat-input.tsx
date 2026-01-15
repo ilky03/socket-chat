@@ -1,18 +1,22 @@
 import { useState, type FC } from "react";
-import { useSocket } from "../../context/socket-context-provider";
+import { useChat } from "../../context/chat-context-provider";
 
 export const ChatInput: FC = () => {
   const [message, setMessage] = useState("");
-  const { socket } = useSocket();
+  const { sendMessage, currentChat } = useChat();
 
-  const sendMessage = (e: React.FormEvent) => {
+  if (!currentChat) {
+    return <div>Please select a chat to send messages.</div>;
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    socket.emit("send_message", message);
+    sendMessage(message, currentChat!);
     setMessage("");
   };
 
   return (
-    <form onSubmit={sendMessage}>
+    <form onSubmit={handleSubmit}>
       <input
         type="text"
         value={message}

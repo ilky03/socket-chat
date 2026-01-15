@@ -1,4 +1,5 @@
 import express from "express";
+import { randomUUID } from "node:crypto";
 import { createServer } from "node:http";
 import { Server } from "socket.io";
 
@@ -10,13 +11,27 @@ const io = new Server(server, {
   },
 });
 
+const rooms = new Set<string>();
+
 io.on("connection", (socket) => {
-  socket.on("send_message", (message) => {
-    io.emit("receive_message", message);
+  socket.on("send_message", ({ message, roomId }) => {
+    io.to(roomId).emit("receive_message", message);
+  });
+
+  socket.on("create_room", () => {
+    const roomId = randomUUID();
+
+    rooms.add(roomId);
+    socket.join(roomId);
+    io.emit("room_created", roomId);
+  });
+
+  socket.on("join_room", (roomId: string) => {
+    socket.join(roomId);
   });
 
   socket.on("disconnect", () => {
-    console.log("user disconnected");
+    // console.log("user disconnected");
   });
 });
 
