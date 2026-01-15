@@ -6,8 +6,10 @@ export const ChatHistory: FC = () => {
 
   return (
     <ul>
-      {messages.map((msg, index) => (
-        <li key={index}>{msg}</li>
+      {messages.map(({ message, username }, index) => (
+        <li key={index}>
+          {username}: {message}
+        </li>
       ))}
     </ul>
   );

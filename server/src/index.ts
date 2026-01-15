@@ -14,8 +14,8 @@ const io = new Server(server, {
 const rooms = new Set<string>();
 
 io.on("connection", (socket) => {
-  socket.on("send_message", ({ message, roomId }) => {
-    io.to(roomId).emit("receive_message", message);
+  socket.on("send_message", ({ message, roomId, username }) => {
+    io.to(roomId).emit("receive_message", { message, username });
   });
 
   socket.on("create_room", () => {

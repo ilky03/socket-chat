@@ -7,12 +7,18 @@ import {
   type PropsWithChildren,
 } from "react";
 import { useSocket } from "./socket-context-provider";
+import { useAuth } from "./auth-context-provider";
+
+type Message = {
+  message: string;
+  username: string;
+};
 
 type ChatContextType = {
   sendMessage: (message: string, currentChat: string) => void;
   createNewChat: () => void;
   joinChat: (chatId: string) => void;
-  messages: Array<string>;
+  messages: Array<Message>;
   chats: Array<string>;
   currentChat: string | null;
 };
@@ -23,13 +29,14 @@ const ChatContextInternal = createContext<ChatContextType | undefined>(
 
 export const ChatContext: FC<PropsWithChildren> = ({ children }) => {
   const { socket } = useSocket();
+  const { username } = useAuth();
 
-  const [messages, setMessages] = useState<Array<string>>([]);
+  const [messages, setMessages] = useState<Array<Message>>([]);
   const [chats, setChats] = useState<Array<string>>([]);
   const [currentChat, setCurrentChat] = useState<string | null>(null);
 
   useEffect(() => {
-    socket.on("receive_message", (message: string) => {
+    socket.on("receive_message", (message: Message) => {
       setMessages((prevMessages) => [...prevMessages, message]);
     });
 
@@ -44,7 +51,7 @@ export const ChatContext: FC<PropsWithChildren> = ({ children }) => {
   }, [socket]);
 
   const sendMessage = (message: string, currentChat: string) => {
-    socket.emit("send_message", { message, roomId: currentChat });
+    socket.emit("send_message", { message, roomId: currentChat, username });
   };
 
   const createNewChat = () => {
