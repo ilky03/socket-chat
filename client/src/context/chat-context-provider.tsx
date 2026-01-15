@@ -41,7 +41,7 @@ export const ChatContext: FC<PropsWithChildren> = ({ children }) => {
     });
 
     socket.on("room_created", (roomId: string) => {
-      setChats((prevChats) => [...prevChats, roomId]);
+      setChats((prevChats) => [roomId, ...prevChats]);
     });
 
     return () => {

@@ -17,10 +17,14 @@ const AuthContextInternal = createContext<AuthContextType | undefined>(
 );
 
 export const AuthContext: FC<PropsWithChildren> = ({ children }) => {
-  const [username, setUsername] = useState<string | undefined>(undefined);
+  const [username, setUsername] = useState<string | undefined>(
+    () => localStorage.getItem("username") ?? undefined
+  );
 
   const login = (name: string) => {
     setUsername(name);
+
+    localStorage.setItem("username", name);
   };
 
   return (
