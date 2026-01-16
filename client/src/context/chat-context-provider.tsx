@@ -17,8 +17,11 @@ type Message = {
 
 export type ChatContextType = {
   sendMessage: (message: string) => void;
+  userTyping: () => void;
+  userStoppedTyping: () => void;
   messages: Array<Message>;
   currentChat: ChatsContextType["currentChat"];
+  typingUsers: Set<string>;
 };
 
 const ChatContextInternal = createContext<ChatContextType | undefined>(
@@ -32,6 +35,7 @@ export const ChatContext: FC<PropsWithChildren> = ({ children }) => {
   const { currentChat } = useChats();
 
   const [messages, setMessages] = useState<Array<Message>>([]);
+  const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     socket.on("receive_message", (message: Message) => {
@@ -42,9 +46,27 @@ export const ChatContext: FC<PropsWithChildren> = ({ children }) => {
       setMessages(roomMessages);
     });
 
+    socket.on("user_typing", (username: string) => {
+      setTypingUsers((prev) => {
+        const next = new Set(prev);
+        next.add(username);
+        return next;
+      });
+    });
+
+    socket.on("user_stopped_typing", (username: string) => {
+      setTypingUsers((prev) => {
+        const next = new Set(prev);
+        next.delete(username);
+        return next;
+      });
+    });
+
     return () => {
       socket.off("receive_message");
       socket.off("room_history");
+      socket.off("user_typing");
+      socket.off("user_stopped_typing");
     };
   }, [socket]);
 
@@ -52,12 +74,23 @@ export const ChatContext: FC<PropsWithChildren> = ({ children }) => {
     socket.emit("send_message", { message, roomId: currentChat, username });
   };
 
+  const userTyping = () => {
+    socket.emit("user_typing", { username, roomId: currentChat });
+  };
+
+  const userStoppedTyping = () => {
+    socket.emit("user_stopped_typing", { username, roomId: currentChat });
+  };
+
   return (
     <ChatContextInternal.Provider
       value={{
         sendMessage,
+        userTyping,
+        userStoppedTyping,
         messages,
         currentChat,
+        typingUsers,
       }}
     >
       {children}

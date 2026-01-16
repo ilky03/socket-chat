@@ -26,19 +26,11 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   socket.emit("sync_rooms", { rooms });
 
-  socket.on("send_message", ({ message, roomId, username }) => {
-    rooms
-      .find((room) => room.id === roomId)
-      ?.messages.push({ message, username });
-    io.to(roomId).emit("receive_message", { message, username });
-  });
-
   socket.on("create_room", () => {
     const roomId = randomUUID();
 
     rooms.unshift({ id: roomId, messages: [], users: [] });
 
-    socket.join(roomId);
     io.emit("room_created", roomId);
   });
 
@@ -50,6 +42,21 @@ io.on("connection", (socket) => {
     if (room) {
       socket.emit("room_history", room.messages);
     }
+  });
+
+  socket.on("send_message", ({ message, roomId, username }) => {
+    rooms
+      .find((room) => room.id === roomId)
+      ?.messages.push({ message, username });
+    io.to(roomId).emit("receive_message", { message, username });
+  });
+
+  socket.on("user_typing", ({ username, roomId }) => {
+    socket.to(roomId).emit("user_typing", username);
+  });
+
+  socket.on("user_stopped_typing", ({ username, roomId }) => {
+    socket.to(roomId).emit("user_stopped_typing", username);
   });
 
   socket.on("disconnect", () => {
