@@ -8,6 +8,7 @@ import {
 } from "react";
 import { useSocket } from "./socket-context-provider";
 import { useAuth } from "./auth-context-provider";
+import { useChats, type ChatsContextType } from "./chats-context-provider";
 
 type Message = {
   message: string;
@@ -15,37 +16,26 @@ type Message = {
 };
 
 export type ChatContextType = {
-  sendMessage: (message: string, currentChat: string) => void;
-  createNewChat: () => void;
-  joinChat: (chatId: string) => void;
+  sendMessage: (message: string) => void;
   messages: Array<Message>;
-  chats: Array<string>;
-  currentChat: string | null;
+  currentChat: ChatsContextType["currentChat"];
 };
 
 const ChatContextInternal = createContext<ChatContextType | undefined>(
   undefined
 );
 
+/** Context for managing separate chat */
 export const ChatContext: FC<PropsWithChildren> = ({ children }) => {
   const { socket } = useSocket();
   const { username } = useAuth();
+  const { currentChat } = useChats();
 
   const [messages, setMessages] = useState<Array<Message>>([]);
-  const [chats, setChats] = useState<Array<string>>([]);
-  const [currentChat, setCurrentChat] = useState<string | null>(null);
 
   useEffect(() => {
-    socket.on("sync_rooms", (rooms) => {
-      setChats(rooms.rooms.map((room: { id: string }) => room.id));
-    });
-
     socket.on("receive_message", (message: Message) => {
       setMessages((prevMessages) => [...prevMessages, message]);
-    });
-
-    socket.on("room_created", (roomId: string) => {
-      setChats((prevChats) => [roomId, ...prevChats]);
     });
 
     socket.on("room_history", (roomMessages: Array<Message>) => {
@@ -53,36 +43,20 @@ export const ChatContext: FC<PropsWithChildren> = ({ children }) => {
     });
 
     return () => {
-      socket.off("sync_rooms");
       socket.off("receive_message");
-      socket.off("room_created");
       socket.off("room_history");
     };
   }, [socket]);
 
-  const sendMessage = (message: string, currentChat: string) => {
+  const sendMessage = (message: string) => {
     socket.emit("send_message", { message, roomId: currentChat, username });
-  };
-
-  const createNewChat = () => {
-    socket.emit("create_room");
-  };
-
-  const joinChat = (chatId: string) => {
-    setCurrentChat(chatId);
-    setMessages([]);
-
-    socket.emit("join_room", chatId);
   };
 
   return (
     <ChatContextInternal.Provider
       value={{
         sendMessage,
-        createNewChat,
-        joinChat,
         messages,
-        chats,
         currentChat,
       }}
     >

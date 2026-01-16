@@ -1,9 +1,9 @@
 import type { FC } from "react";
 import clsx from "clsx";
-import type { ChatContextType } from "../../context/chat-context-provider";
+import type { ChatsContextType } from "../../context/chats-context-provider";
 
-type ChatListProps = Pick<ChatContextType, "chats" | "currentChat"> & {
-  onSelectChat: ChatContextType["joinChat"];
+type ChatListProps = Pick<ChatsContextType, "chats" | "currentChat"> & {
+  onSelectChat: ChatsContextType["joinChat"];
 };
 
 export const ChatList: FC<ChatListProps> = ({

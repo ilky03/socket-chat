@@ -1,9 +1,9 @@
 import type { FC } from "react";
-import { useChat } from "../../context/chat-context-provider";
+import { useChats } from "../../context/chats-context-provider";
 import { ChatList } from "./chat-list";
 
 export const ChatSidebar: FC = () => {
-  const { createNewChat, currentChat, chats, joinChat } = useChat();
+  const { createNewChat, currentChat, chats, joinChat } = useChats();
 
   return (
     <aside className="flex w-64 flex-col bg-white h-screen border-r row-span-2">

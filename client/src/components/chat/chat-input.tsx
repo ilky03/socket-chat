@@ -11,7 +11,7 @@ export const ChatInput: FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    sendMessage(message, currentChat!);
+    sendMessage(message);
     setMessage("");
   };
 
