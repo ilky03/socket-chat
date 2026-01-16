@@ -3,10 +3,10 @@ import { useChats } from "../../context/chats-context-provider";
 import { ChatList } from "./chat-list";
 
 export const ChatSidebar: FC = () => {
-  const { createNewChat, currentChat, chats, joinChat } = useChats();
+  const { createNewChat, currentChat, chats, joinChat, updateChatTitle } = useChats();
 
   return (
-    <aside className="flex w-64 flex-col bg-white h-screen border-r row-span-2">
+    <aside className="col-start-1 row-span-2 flex w-64 flex-col bg-white h-screen border-r">
       <div className="border-b px-4 py-3 text-sm font-semibold">Chats</div>
 
       <nav className="flex-1 overflow-y-auto p-2">
@@ -14,6 +14,7 @@ export const ChatSidebar: FC = () => {
           chats={chats}
           currentChat={currentChat}
           onSelectChat={joinChat}
+          updateChatTitle={updateChatTitle}
         />
       </nav>
 

@@ -3,6 +3,7 @@ import {
   useContext,
   useEffect,
   useState,
+  useRef,
   type FC,
   type PropsWithChildren,
 } from "react";
@@ -18,6 +19,8 @@ export type ChatContextType = {
   messages: Array<Message>;
   currentChat: ChatsContextType["currentChat"];
   typingUsers: Set<string>;
+  usersInChat: Array<string>;
+  onlineUsersInChat: Array<string>;
 };
 
 const ChatContextInternal = createContext<ChatContextType | undefined>(
@@ -31,31 +34,59 @@ export const ChatContext: FC<PropsWithChildren> = ({ children }) => {
   const { currentChat } = useChats();
 
   const [messages, setMessages] = useState<Array<Message>>([]);
-  const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
+  const [typingUsers, setTypingUsers] = useState<Record<string, Set<string>>>({});
+  const [usersInChat, setUsersInChat] = useState<Record<string, Array<string>>>({});
+  const [onlineUsersInChat, setOnlineUsersInChat] = useState<Record<string, Array<string>>>({});
+  
+  const currentChatRef = useRef(currentChat);
+
+  useEffect(() => {
+    currentChatRef.current = currentChat;
+  }, [currentChat]);
 
   useEffect(() => {
     socket.on("receiveMessage", (message) => {
-      setMessages((prevMessages) => [...prevMessages, message]);
+      if (message.chatId === currentChatRef.current) {
+        setMessages((prevMessages) => [...prevMessages, message]);
+      }
     });
 
     socket.on("chatHistory", ({ messages }) => {
       setMessages(messages);
     });
 
-    socket.on("userTyping", ({ username }) => {
+    socket.on("userTyping", ({ username, chatId }) => {
       setTypingUsers((prev) => {
-        const next = new Set(prev);
-        next.add(username);
+        const next = { ...prev };
+        if (!next[chatId]) {
+          next[chatId] = new Set();
+        }
+        next[chatId] = new Set(next[chatId]).add(username);
         return next;
       });
     });
 
-    socket.on("userStoppedTyping", ({ username }) => {
+    socket.on("userStoppedTyping", ({ username, chatId }) => {
       setTypingUsers((prev) => {
-        const next = new Set(prev);
-        next.delete(username);
+        const next = { ...prev };
+        if (next[chatId]) {
+          const nextSet = new Set(next[chatId]);
+          nextSet.delete(username);
+          next[chatId] = nextSet;
+        }
         return next;
       });
+    });
+
+    socket.on("chatUsersUpdate", ({ chatId, users, onlineUsers }) => {
+      setUsersInChat((prev) => ({
+        ...prev,
+        [chatId]: users,
+      }));
+      setOnlineUsersInChat((prev) => ({
+        ...prev,
+        [chatId]: onlineUsers,
+      }));
     });
 
     return () => {
@@ -63,6 +94,7 @@ export const ChatContext: FC<PropsWithChildren> = ({ children }) => {
       socket.off("chatHistory");
       socket.off("userTyping");
       socket.off("userStoppedTyping");
+      socket.off("chatUsersUpdate");
     };
   }, [socket]);
 
@@ -93,7 +125,9 @@ export const ChatContext: FC<PropsWithChildren> = ({ children }) => {
         userStoppedTyping,
         messages,
         currentChat,
-        typingUsers,
+        typingUsers: (currentChat && typingUsers[currentChat]) || new Set(),
+        usersInChat: (currentChat && usersInChat[currentChat]) || [],
+        onlineUsersInChat: (currentChat && onlineUsersInChat[currentChat]) || [],
       }}
     >
       {children}

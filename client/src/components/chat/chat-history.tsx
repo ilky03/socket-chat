@@ -25,7 +25,7 @@ export const ChatHistory: FC = () => {
   }
 
   return (
-    <ul className="flex flex-col gap-3 p-4 w-full flex-1 overflow-y-auto">
+    <ul className="col-start-2 row-start-1 flex flex-col gap-3 p-4 w-full flex-1 overflow-y-auto">
       {messages.map(({ message, username }, index) => (
         <ChatMessage
           key={index}
