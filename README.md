@@ -102,8 +102,13 @@ http://localhost:5173
 > Screenshots of:
 
 * Login screen
-* Chat room list
-* Active chat with messages
-* Typing indicator
+<img width="727" height="726" alt="image" src="https://github.com/user-attachments/assets/d483d4c2-14b0-4543-827f-665f48950c5a" />
 
-*(Add screenshots here)*
+* Chat room list
+<img width="727" height="740" alt="image" src="https://github.com/user-attachments/assets/f388ac00-40f9-495e-85c0-074e3e8e69d6" />
+
+* Active chat with messages
+<img width="727" height="740" alt="image" src="https://github.com/user-attachments/assets/42f11cf3-e408-4366-baf6-628ede82d5de" />
+
+<img width="1460" height="565" alt="image" src="https://github.com/user-attachments/assets/331f56bf-ea68-405f-be09-1e0e466d46e3" />
+
