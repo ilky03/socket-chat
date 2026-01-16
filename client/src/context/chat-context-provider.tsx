@@ -36,6 +36,10 @@ export const ChatContext: FC<PropsWithChildren> = ({ children }) => {
   const [currentChat, setCurrentChat] = useState<string | null>(null);
 
   useEffect(() => {
+    socket.on("sync_rooms", (rooms) => {
+      setChats(rooms.rooms.map((room: { id: string }) => room.id));
+    });
+
     socket.on("receive_message", (message: Message) => {
       setMessages((prevMessages) => [...prevMessages, message]);
     });
@@ -44,9 +48,15 @@ export const ChatContext: FC<PropsWithChildren> = ({ children }) => {
       setChats((prevChats) => [roomId, ...prevChats]);
     });
 
+    socket.on("room_history", (roomMessages: Array<Message>) => {
+      setMessages(roomMessages);
+    });
+
     return () => {
+      socket.off("sync_rooms");
       socket.off("receive_message");
       socket.off("room_created");
+      socket.off("room_history");
     };
   }, [socket]);
 
