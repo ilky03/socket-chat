@@ -3,14 +3,18 @@ import { useChat } from "../../context/chat-context-provider";
 import { ChatList } from "./chat-list";
 
 export const ChatSidebar: FC = () => {
-  const { createNewChat } = useChat();
+  const { createNewChat, currentChat, chats, joinChat } = useChat();
 
   return (
     <aside className="flex w-64 flex-col bg-white h-screen border-r row-span-2">
       <div className="border-b px-4 py-3 text-sm font-semibold">Chats</div>
 
       <nav className="flex-1 overflow-y-auto p-2">
-        <ChatList />
+        <ChatList
+          chats={chats}
+          currentChat={currentChat}
+          onSelectChat={joinChat}
+        />
       </nav>
 
       <div className="border-t p-3">

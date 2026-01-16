@@ -1,9 +1,16 @@
 import type { FC } from "react";
-import { useChat } from "../../context/chat-context-provider";
+import clsx from "clsx";
+import type { ChatContextType } from "../../context/chat-context-provider";
 
-export const ChatList: FC = () => {
-  const { chats, joinChat } = useChat();
+type ChatListProps = Pick<ChatContextType, "chats" | "currentChat"> & {
+  onSelectChat: ChatContextType["joinChat"];
+};
 
+export const ChatList: FC<ChatListProps> = ({
+  chats,
+  currentChat,
+  onSelectChat,
+}) => {
   const hasChats = chats.length > 0;
 
   if (!hasChats) {
@@ -24,8 +31,11 @@ export const ChatList: FC = () => {
       {chats.map((chat) => (
         <li key={chat}>
           <button
-            onClick={() => joinChat(chat)}
-            className="w-full rounded-md px-3 py-2 text-left text-sm hover:bg-gray-100 transition cursor-pointer"
+            onClick={() => onSelectChat(chat)}
+            className={clsx(
+              "w-full rounded-md px-3 py-2 text-left text-sm hover:bg-gray-100 transition cursor-pointer",
+              currentChat === chat ? "bg-gray-200 font-medium" : "font-normal"
+            )}
           >
             {chat}
           </button>

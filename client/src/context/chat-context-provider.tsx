@@ -14,7 +14,7 @@ type Message = {
   username: string;
 };
 
-type ChatContextType = {
+export type ChatContextType = {
   sendMessage: (message: string, currentChat: string) => void;
   createNewChat: () => void;
   joinChat: (chatId: string) => void;
