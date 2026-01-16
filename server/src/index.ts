@@ -23,10 +23,17 @@ io.on("connection", (socket) => {
 
   socket.on("createChat", () => {
     const chatId = randomUUID();
+    const title = `New Chat ${chats.length + 1}`;
 
-    chats.unshift({ id: chatId, messages: [], users: [], onlineUsers: [] });
+    chats.unshift({ 
+        id: chatId, 
+        title, 
+        messages: [], 
+        users: [], 
+        onlineUsers: [] 
+    });
 
-    io.emit("chatCreated", { chatId });
+    io.emit("chatCreated", { chatId, title });
   });
 
   socket.on("joinChat", ({ chatId, username }) => {
@@ -70,6 +77,14 @@ io.on("connection", (socket) => {
 
   socket.on("userStoppedTyping", ({ username, chatId }) => {
     socket.to(chatId).emit("userStoppedTyping", { username, chatId });
+  });
+
+  socket.on("updateChatTitle", ({ chatId, title }) => {
+    const chat = chats.find((c) => c.id === chatId);
+    if (chat) {
+        chat.title = title;
+        io.emit("chatTitleUpdated", { chatId, title });
+    }
   });
 
   socket.on("disconnect", () => {

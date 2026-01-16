@@ -8,6 +8,7 @@ export type Message = {
 
 export type Chat = {
   id: ChatId;
+  title: string;
   messages: Message[];
   users: Username[];
   onlineUsers: Username[];
@@ -27,7 +28,7 @@ type WithMessage = {
 
 export type ServerToClientEvents = {
   syncChats: (payload: { chats: Chat[] }) => void;
-  chatCreated: (payload: { chatId: ChatId }) => void;
+  chatCreated: (payload: { chatId: ChatId; title: string }) => void;
   chatHistory: (payload: { messages: Message[] }) => void;
   receiveMessage: (payload: Message) => void;
   userTyping: (payload: WithChatId & WithUsername) => void;
@@ -37,6 +38,7 @@ export type ServerToClientEvents = {
     users: Username[];
     onlineUsers: Username[];
   }) => void;
+  chatTitleUpdated: (payload: { chatId: ChatId; title: string }) => void;
 };
 
 export type ClientToServerEvents = {
@@ -45,4 +47,5 @@ export type ClientToServerEvents = {
   sendMessage: (payload: WithChatId & WithUsername & WithMessage) => void;
   userTyping: (payload: WithChatId & WithUsername) => void;
   userStoppedTyping: (payload: WithChatId & WithUsername) => void;
+  updateChatTitle: (payload: { chatId: ChatId; title: string }) => void;
 };

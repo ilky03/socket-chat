@@ -3,7 +3,7 @@ import { useChats } from "../../context/chats-context-provider";
 import { ChatList } from "./chat-list";
 
 export const ChatSidebar: FC = () => {
-  const { createNewChat, currentChat, chats, joinChat } = useChats();
+  const { createNewChat, currentChat, chats, joinChat, updateChatTitle } = useChats();
 
   return (
     <aside className="col-start-1 row-span-2 flex w-64 flex-col bg-white h-screen border-r">
@@ -14,6 +14,7 @@ export const ChatSidebar: FC = () => {
           chats={chats}
           currentChat={currentChat}
           onSelectChat={joinChat}
+          updateChatTitle={updateChatTitle}
         />
       </nav>
 
