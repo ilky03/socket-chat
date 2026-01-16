@@ -9,6 +9,8 @@ export type Message = {
 export type Chat = {
   id: ChatId;
   messages: Message[];
+  users: Username[];
+  onlineUsers: Username[];
 };
 
 type WithChatId = {
@@ -30,11 +32,16 @@ export type ServerToClientEvents = {
   receiveMessage: (payload: Message) => void;
   userTyping: (payload: WithChatId & WithUsername) => void;
   userStoppedTyping: (payload: WithChatId & WithUsername) => void;
+  chatUsersUpdate: (payload: {
+    chatId: ChatId;
+    users: Username[];
+    onlineUsers: Username[];
+  }) => void;
 };
 
 export type ClientToServerEvents = {
   createChat: () => void;
-  joinChat: (payload: WithChatId) => void;
+  joinChat: (payload: WithChatId & WithUsername) => void;
   sendMessage: (payload: WithChatId & WithUsername & WithMessage) => void;
   userTyping: (payload: WithChatId & WithUsername) => void;
   userStoppedTyping: (payload: WithChatId & WithUsername) => void;

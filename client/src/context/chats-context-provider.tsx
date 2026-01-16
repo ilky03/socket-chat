@@ -7,6 +7,7 @@ import {
   type PropsWithChildren,
 } from "react";
 import { useSocket } from "./socket-context-provider";
+import { useAuth } from "./auth-context-provider";
 
 export type ChatsContextType = {
   createNewChat: () => void;
@@ -22,6 +23,7 @@ const ChatsContextInternal = createContext<ChatsContextType | undefined>(
 /** Context for managing all chats */
 export const ChatsContext: FC<PropsWithChildren> = ({ children }) => {
   const { socket } = useSocket();
+  const { username } = useAuth();
 
   const [chats, setChats] = useState<Array<string>>([]);
   const [currentChat, setCurrentChat] = useState<string | null>(null);
@@ -48,7 +50,7 @@ export const ChatsContext: FC<PropsWithChildren> = ({ children }) => {
   const joinChat = (chatId: string) => {
     setCurrentChat(chatId);
 
-    socket.emit("joinChat", { chatId });
+    socket.emit("joinChat", { chatId, username: username! });
   };
 
   return (

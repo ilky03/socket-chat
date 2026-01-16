@@ -18,6 +18,8 @@ export type ChatContextType = {
   messages: Array<Message>;
   currentChat: ChatsContextType["currentChat"];
   typingUsers: Set<string>;
+  usersInChat: Array<string>;
+  onlineUsersInChat: Array<string>;
 };
 
 const ChatContextInternal = createContext<ChatContextType | undefined>(
@@ -32,6 +34,8 @@ export const ChatContext: FC<PropsWithChildren> = ({ children }) => {
 
   const [messages, setMessages] = useState<Array<Message>>([]);
   const [typingUsers, setTypingUsers] = useState<Record<string, Set<string>>>({});
+  const [usersInChat, setUsersInChat] = useState<Record<string, Array<string>>>({});
+  const [onlineUsersInChat, setOnlineUsersInChat] = useState<Record<string, Array<string>>>({});
 
   useEffect(() => {
     socket.on("receiveMessage", (message) => {
@@ -65,11 +69,23 @@ export const ChatContext: FC<PropsWithChildren> = ({ children }) => {
       });
     });
 
+    socket.on("chatUsersUpdate", ({ chatId, users, onlineUsers }) => {
+      setUsersInChat((prev) => ({
+        ...prev,
+        [chatId]: users,
+      }));
+      setOnlineUsersInChat((prev) => ({
+        ...prev,
+        [chatId]: onlineUsers,
+      }));
+    });
+
     return () => {
       socket.off("receiveMessage");
       socket.off("chatHistory");
       socket.off("userTyping");
       socket.off("userStoppedTyping");
+      socket.off("chatUsersUpdate");
     };
   }, [socket]);
 
@@ -101,6 +117,8 @@ export const ChatContext: FC<PropsWithChildren> = ({ children }) => {
         messages,
         currentChat,
         typingUsers: (currentChat && typingUsers[currentChat]) || new Set(),
+        usersInChat: (currentChat && usersInChat[currentChat]) || [],
+        onlineUsersInChat: (currentChat && onlineUsersInChat[currentChat]) || [],
       }}
     >
       {children}

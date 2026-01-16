@@ -15,28 +15,48 @@ const io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
   },
 });
 
+// Track socketId -> username for disconnect handling
+const socketUserMap = new Map<string, string>();
+
 io.on("connection", (socket) => {
   socket.emit("syncChats", { chats });
 
   socket.on("createChat", () => {
     const chatId = randomUUID();
 
-    chats.unshift({ id: chatId, messages: [] });
+    chats.unshift({ id: chatId, messages: [], users: [], onlineUsers: [] });
 
     io.emit("chatCreated", { chatId });
   });
 
-  socket.on("joinChat", ({ chatId }) => {
+  socket.on("joinChat", ({ chatId, username }) => {
     socket.join(chatId);
+    socketUserMap.set(socket.id, username);
 
     const chat = chats.find((chat) => chat.id === chatId);
 
     if (chat) {
+      if (!chat.users.includes(username)) {
+        chat.users.push(username);
+      }
+      
+      if (!chat.onlineUsers.includes(username)) {
+        chat.onlineUsers.push(username);
+      }
+
+      io.to(chatId).emit("chatUsersUpdate", { 
+        chatId, 
+        users: chat.users,
+        onlineUsers: chat.onlineUsers 
+      });
       socket.emit("chatHistory", { messages: chat.messages });
     }
   });
 
   socket.on("sendMessage", ({ message, chatId, username }) => {
+    // We get username here. Maybe update map here?
+    socketUserMap.set(socket.id, username);
+    
     chats
       .find((chat) => chat.id === chatId)
       ?.messages.push({ message, username });
@@ -44,6 +64,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("userTyping", ({ username, chatId }) => {
+     socketUserMap.set(socket.id, username);
     socket.to(chatId).emit("userTyping", { username, chatId });
   });
 
@@ -52,7 +73,22 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    // console.log("user disconnected");
+    const username = socketUserMap.get(socket.id);
+    if (username) {
+        // Remove user from all chats
+        chats.forEach(chat => {
+            const onlineIndex = chat.onlineUsers.indexOf(username);
+            if (onlineIndex !== -1) {
+                chat.onlineUsers.splice(onlineIndex, 1);
+                 io.to(chat.id).emit("chatUsersUpdate", { 
+                    chatId: chat.id, 
+                    users: chat.users, 
+                    onlineUsers: chat.onlineUsers 
+                });
+            }
+        });
+        socketUserMap.delete(socket.id);
+    }
   });
 });
 

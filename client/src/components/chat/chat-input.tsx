@@ -23,7 +23,7 @@ export const ChatInput: FC = () => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="relative p-3 border-t flex flex-row gap-3"
+      className="col-start-2 row-start-2 relative p-3 border-t flex flex-row gap-3"
     >
       <ChatStatus />
       <input

@@ -1,5 +1,6 @@
 import { ChatHistory } from "./components/chat/chat-history";
 import { ChatInput } from "./components/chat/chat-input";
+import { UserList } from "./components/chat/user-list";
 import { SocketContext } from "./context/socket-context-provider";
 import { ChatSidebar } from "./components/chat/chat-sidebar";
 import { ChatsContext } from "./context/chats-context-provider";
@@ -19,6 +20,7 @@ function App() {
               <ChatSidebar />
               <ChatHistory />
               <ChatInput />
+              <UserList />
             </ChatWrapper>
           </ChatContext>
         </ChatsContext>
