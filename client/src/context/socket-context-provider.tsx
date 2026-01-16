@@ -5,9 +5,10 @@ import {
   type PropsWithChildren,
 } from "react";
 import { io, Socket } from "socket.io-client";
+import type { ClientToServerEvents, ServerToClientEvents } from "../types";
 
 type SocketContextType = {
-  socket: Socket;
+  socket: Socket<ServerToClientEvents, ClientToServerEvents>;
 };
 
 const SocketContextInternal = createContext<SocketContextType | undefined>(
@@ -15,7 +16,9 @@ const SocketContextInternal = createContext<SocketContextType | undefined>(
 );
 
 export const SocketContext: FC<PropsWithChildren> = ({ children }) => {
-  const socket = io("http://localhost:3000");
+  const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io(
+    "http://localhost:3000"
+  );
 
   return (
     <SocketContextInternal.Provider value={{ socket }}>

@@ -9,11 +9,7 @@ import {
 import { useSocket } from "./socket-context-provider";
 import { useAuth } from "./auth-context-provider";
 import { useChats, type ChatsContextType } from "./chats-context-provider";
-
-type Message = {
-  message: string;
-  username: string;
-};
+import type { Message } from "../types";
 
 export type ChatContextType = {
   sendMessage: (message: string) => void;
@@ -38,15 +34,15 @@ export const ChatContext: FC<PropsWithChildren> = ({ children }) => {
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    socket.on("receive_message", (message: Message) => {
+    socket.on("receiveMessage", (message) => {
       setMessages((prevMessages) => [...prevMessages, message]);
     });
 
-    socket.on("room_history", (roomMessages: Array<Message>) => {
-      setMessages(roomMessages);
+    socket.on("chatHistory", ({ messages }) => {
+      setMessages(messages);
     });
 
-    socket.on("user_typing", (username: string) => {
+    socket.on("userTyping", ({ username }) => {
       setTypingUsers((prev) => {
         const next = new Set(prev);
         next.add(username);
@@ -54,7 +50,7 @@ export const ChatContext: FC<PropsWithChildren> = ({ children }) => {
       });
     });
 
-    socket.on("user_stopped_typing", (username: string) => {
+    socket.on("userStoppedTyping", ({ username }) => {
       setTypingUsers((prev) => {
         const next = new Set(prev);
         next.delete(username);
@@ -63,23 +59,30 @@ export const ChatContext: FC<PropsWithChildren> = ({ children }) => {
     });
 
     return () => {
-      socket.off("receive_message");
-      socket.off("room_history");
-      socket.off("user_typing");
-      socket.off("user_stopped_typing");
+      socket.off("receiveMessage");
+      socket.off("chatHistory");
+      socket.off("userTyping");
+      socket.off("userStoppedTyping");
     };
   }, [socket]);
 
   const sendMessage = (message: string) => {
-    socket.emit("send_message", { message, roomId: currentChat, username });
+    socket.emit("sendMessage", {
+      message,
+      chatId: currentChat!,
+      username: username!,
+    });
   };
 
   const userTyping = () => {
-    socket.emit("user_typing", { username, roomId: currentChat });
+    socket.emit("userTyping", { username: username!, chatId: currentChat! });
   };
 
   const userStoppedTyping = () => {
-    socket.emit("user_stopped_typing", { username, roomId: currentChat });
+    socket.emit("userStoppedTyping", {
+      username: username!,
+      chatId: currentChat!,
+    });
   };
 
   return (

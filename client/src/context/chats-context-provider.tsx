@@ -27,28 +27,28 @@ export const ChatsContext: FC<PropsWithChildren> = ({ children }) => {
   const [currentChat, setCurrentChat] = useState<string | null>(null);
 
   useEffect(() => {
-    socket.on("room_created", (roomId: string) => {
-      setChats((prevChats) => [roomId, ...prevChats]);
+    socket.on("chatCreated", ({ chatId }) => {
+      setChats((prevChats) => [chatId, ...prevChats]);
     });
 
-    socket.on("sync_rooms", (rooms) => {
-      setChats(rooms.rooms.map((room: { id: string }) => room.id));
+    socket.on("syncChats", ({ chats }) => {
+      setChats(chats.map((chat: { id: string }) => chat.id));
     });
 
     return () => {
-      socket.off("sync_rooms");
-      socket.off("room_created");
+      socket.off("syncChats");
+      socket.off("chatCreated");
     };
   }, [socket]);
 
   const createNewChat = () => {
-    socket.emit("create_room");
+    socket.emit("createChat");
   };
 
   const joinChat = (chatId: string) => {
     setCurrentChat(chatId);
 
-    socket.emit("join_room", chatId);
+    socket.emit("joinChat", { chatId });
   };
 
   return (

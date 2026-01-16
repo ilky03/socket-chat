@@ -2,61 +2,53 @@ import express from "express";
 import { randomUUID } from "node:crypto";
 import { createServer } from "node:http";
 import { Server } from "socket.io";
+import { Chat, ClientToServerEvents, ServerToClientEvents } from "./types";
 
-type Room = {
-  id: string;
-  messages: Array<{
-    message: string;
-    username: string;
-  }>;
-  users: Array<string>;
-};
-
-// In-memory storage for rooms and their messages
-const rooms: Array<Room> = [];
+// In-memory storage for chats and their messages
+const chats: Array<Chat> = [];
 
 const app = express();
 const server = createServer(app);
-const io = new Server(server, {
+const io = new Server<ClientToServerEvents, ServerToClientEvents>(server, {
   cors: {
     origin: "*",
   },
 });
 
 io.on("connection", (socket) => {
-  socket.emit("sync_rooms", { rooms });
+  socket.emit("syncChats", { chats });
 
-  socket.on("create_room", () => {
-    const roomId = randomUUID();
+  socket.on("createChat", () => {
+    const chatId = randomUUID();
 
-    rooms.unshift({ id: roomId, messages: [], users: [] });
+    chats.unshift({ id: chatId, messages: [] });
 
-    io.emit("room_created", roomId);
+    io.emit("chatCreated", { chatId });
   });
 
-  socket.on("join_room", (roomId: string) => {
-    socket.join(roomId);
+  socket.on("joinChat", ({ chatId }) => {
+    socket.join(chatId);
 
-    const room = rooms.find((room) => room.id === roomId);
+    const chat = chats.find((chat) => chat.id === chatId);
 
-    if (room) {
-      socket.emit("room_history", room.messages);
+    if (chat) {
+      socket.emit("chatHistory", { messages: chat.messages });
     }
   });
 
-  socket.on("send_message", ({ message, roomId, username }) => {
-    rooms
-      .find((room) => room.id === roomId)
+  socket.on("sendMessage", ({ message, chatId, username }) => {
+    chats
+      .find((chat) => chat.id === chatId)
       ?.messages.push({ message, username });
-    io.to(roomId).emit("receive_message", { message, username });
+    io.to(chatId).emit("receiveMessage", { message, username });
   });
 
-  socket.on("user_typing", ({ username, roomId }) => {
-    socket.to(roomId).emit("user_typing", username);
+  socket.on("userTyping", ({ username, chatId }) => {
+    socket.to(chatId).emit("userTyping", { username });
   });
 
-  socket.on("user_stopped_typing", ({ username, roomId }) => {
-    socket.to(roomId).emit("user_stopped_typing", username);
+  socket.on("userStoppedTyping", ({ username, chatId }) => {
+    socket.to(chatId).emit("userStoppedTyping", { username });
   });
 
   socket.on("disconnect", () => {
