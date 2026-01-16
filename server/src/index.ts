@@ -44,11 +44,11 @@ io.on("connection", (socket) => {
   });
 
   socket.on("userTyping", ({ username, chatId }) => {
-    socket.to(chatId).emit("userTyping", { username });
+    socket.to(chatId).emit("userTyping", { username, chatId });
   });
 
   socket.on("userStoppedTyping", ({ username, chatId }) => {
-    socket.to(chatId).emit("userStoppedTyping", { username });
+    socket.to(chatId).emit("userStoppedTyping", { username, chatId });
   });
 
   socket.on("disconnect", () => {

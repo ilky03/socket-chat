@@ -28,8 +28,8 @@ export type ServerToClientEvents = {
   chatCreated: (payload: { chatId: ChatId }) => void;
   chatHistory: (payload: { messages: Message[] }) => void;
   receiveMessage: (payload: Message) => void;
-  userTyping: (payload: WithUsername) => void;
-  userStoppedTyping: (payload: WithUsername) => void;
+  userTyping: (payload: WithChatId & WithUsername) => void;
+  userStoppedTyping: (payload: WithChatId & WithUsername) => void;
 };
 
 export type ClientToServerEvents = {
