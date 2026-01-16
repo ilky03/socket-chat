@@ -12,6 +12,7 @@ export type Chat = {
   messages: Message[];
   users: Username[];
   onlineUsers: Username[];
+  isDirect?: boolean;
 };
 
 type WithChatId = {
@@ -30,7 +31,7 @@ export type ServerToClientEvents = {
   syncChats: (payload: { chats: Chat[] }) => void;
   chatCreated: (payload: { chatId: ChatId; title: string }) => void;
   chatHistory: (payload: { messages: Message[] }) => void;
-  receiveMessage: (payload: Message) => void;
+  receiveMessage: (payload: Message & { chatId: ChatId }) => void;
   userTyping: (payload: WithChatId & WithUsername) => void;
   userStoppedTyping: (payload: WithChatId & WithUsername) => void;
   chatUsersUpdate: (payload: {
@@ -42,7 +43,9 @@ export type ServerToClientEvents = {
 };
 
 export type ClientToServerEvents = {
+  identify: (payload: WithUsername) => void;
   createChat: () => void;
+  createDirectChat: (payload: { targetUsername: string; username: string }) => void;
   joinChat: (payload: WithChatId & WithUsername) => void;
   sendMessage: (payload: WithChatId & WithUsername & WithMessage) => void;
   userTyping: (payload: WithChatId & WithUsername) => void;

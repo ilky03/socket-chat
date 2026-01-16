@@ -11,6 +11,7 @@ import { useAuth } from "./auth-context-provider";
 
 export type ChatsContextType = {
   createNewChat: () => void;
+  createDirectChat: (targetUsername: string) => void;
   joinChat: (chatId: string) => void;
   updateChatTitle: (chatId: string, title: string) => void;
   chats: Array<{ id: string; title: string }>;
@@ -28,6 +29,12 @@ export const ChatsContext: FC<PropsWithChildren> = ({ children }) => {
 
   const [chats, setChats] = useState<Array<{ id: string; title: string }>>([]);
   const [currentChat, setCurrentChat] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (username) {
+        socket.emit("identify", { username });
+    }
+  }, [socket, username]);
 
   useEffect(() => {
     socket.on("chatCreated", ({ chatId, title }) => {
@@ -57,6 +64,10 @@ export const ChatsContext: FC<PropsWithChildren> = ({ children }) => {
     socket.emit("createChat");
   };
 
+  const createDirectChat = (targetUsername: string) => {
+    socket.emit("createDirectChat", { username: username!, targetUsername });
+  };
+
   const updateChatTitle = (chatId: string, title: string) => {
     socket.emit("updateChatTitle", { chatId, title });
   };
@@ -71,6 +82,7 @@ export const ChatsContext: FC<PropsWithChildren> = ({ children }) => {
     <ChatsContextInternal.Provider
       value={{
         createNewChat,
+        createDirectChat,
         joinChat,
         updateChatTitle,
         chats,

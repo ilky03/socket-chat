@@ -3,6 +3,7 @@ import {
   useContext,
   useEffect,
   useState,
+  useRef,
   type FC,
   type PropsWithChildren,
 } from "react";
@@ -36,10 +37,18 @@ export const ChatContext: FC<PropsWithChildren> = ({ children }) => {
   const [typingUsers, setTypingUsers] = useState<Record<string, Set<string>>>({});
   const [usersInChat, setUsersInChat] = useState<Record<string, Array<string>>>({});
   const [onlineUsersInChat, setOnlineUsersInChat] = useState<Record<string, Array<string>>>({});
+  
+  const currentChatRef = useRef(currentChat);
+
+  useEffect(() => {
+    currentChatRef.current = currentChat;
+  }, [currentChat]);
 
   useEffect(() => {
     socket.on("receiveMessage", (message) => {
-      setMessages((prevMessages) => [...prevMessages, message]);
+      if (message.chatId === currentChatRef.current) {
+        setMessages((prevMessages) => [...prevMessages, message]);
+      }
     });
 
     socket.on("chatHistory", ({ messages }) => {
